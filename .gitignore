@@ -24,3 +24,4 @@ build
 *.dll
 venv
 env
+.env
