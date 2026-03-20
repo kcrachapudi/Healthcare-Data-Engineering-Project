@@ -1,0 +1,6 @@
+{
+  "total_claim_amount": 500.0,
+  "claims_per_patient": {
+    "JOHN DOE": 1
+  }
+}
