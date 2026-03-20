@@ -1,4 +1,3 @@
-import boto3
 from kafka import KafkaConsumer
 import os
 import json
@@ -9,10 +8,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"
 
 # Import parser
 from processing.x12_parser.parser import parse_x12
-
-s3 = boto3.client('s3')
-s3bucket = 'healthcare-data-lake-kalyan'
-
 
 # -----------------------------
 # Setup Paths (Robust)
@@ -56,7 +51,6 @@ for i, message in enumerate(consumer):
 
         # Parse X12 → JSON
         parsed_data = parse_x12(x12_data)
-        print(f"📊 Parsed Data: {parsed_data}\n")
 
         # Timestamp for uniqueness
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -67,26 +61,20 @@ for i, message in enumerate(consumer):
         bronze_path = os.path.join(bronze_dir, f"claim_{i}_{timestamp}.txt")
         with open(bronze_path, 'w') as f:
             f.write(x12_data)
-        print(f"✅ Bronze saved: {bronze_path}")
-        # Upload Bronze to S3
-        s3.upload_file(
-            bronze_path,
-            s3bucket,
-            f"bronze/{os.path.basename(bronze_path)}"
-        )
-        print("☁️ Uploaded Bronze to S3")
 
+        # -----------------------------
+        # Silver Layer (Parsed JSON)
+        # -----------------------------
         silver_path = os.path.join(silver_dir, f"claim_{i}_{timestamp}.json")
         with open(silver_path, 'w') as f:
             json.dump(parsed_data, f, indent=2)
+
+        # -----------------------------
+        # Logging
+        # -----------------------------
+        print(f"✅ Bronze saved: {bronze_path}")
         print(f"✅ Silver saved: {silver_path}")
-        # Upload Silver to S3
-        s3.upload_file(
-            silver_path,
-            s3bucket,
-            f"silver/{os.path.basename(silver_path)}"
-        )
-        print("☁️ Uploaded Silver to S3")
+        print(f"📊 Parsed Data: {parsed_data}\n")
 
     except Exception as e:
         print(f"❌ Error processing message: {e}")
