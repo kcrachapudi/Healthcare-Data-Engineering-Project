@@ -5,7 +5,7 @@ import os
 import sys
 import dotenv
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
-load_dotenv()
+dotenv.load_dotenv()
 
 conn = psycopg2.connect(
     host=os.getenv("AWS_Database_Endpoint"),
